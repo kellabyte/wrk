@@ -434,9 +434,51 @@ static void socket_readable(aeEventLoop *loop, int fd, void *data, int mask) {
             case RETRY: return;
         }
 
-        if (http_parser_execute(&c->parser, &parser_settings, c->buf, n) != n) goto error;
-        if (n == 0 && !http_body_is_final(&c->parser)) goto error;
+        // if (http_parser_execute(&c->parser, &parser_settings, c->buf, n) != n) goto error;
+        // if (n == 0 && !http_body_is_final(&c->parser)) goto error;
 
+        const char *p = c->buf;
+        char ch;
+        // bool found = false;
+        // for (p=data; p != c->buf + n; p++) {
+        //     ch = *p;
+            
+        //     // printf("%c\n", p);
+        //     if (ch == '\n') {
+        //         if (found) {
+        //             // printf("one\n");
+        //             found = false;
+        //             c->thread->complete++;
+        //             c->thread->requests++;                    
+        //         } else {
+        //             // printf("two\n");
+        //             found = true;
+        //         }
+        //     }
+        // }
+
+        int found = 0;
+        for (p=data; p != c->buf + n; p++) {
+            ch = *p;
+            
+            if (ch == '\n') {
+                found++;
+            }
+        }
+        found = found / 2;
+        c->thread->complete += found;
+        c->thread->requests += found;
+
+        uint64_t now = time_us();
+        if (--c->pending == 0) {
+            if (!stats_record(statistics.latency, now - c->start)) {
+                c->thread->errors.timeout++;
+            }
+            c->delayed = cfg.delay;
+            aeCreateFileEvent(c->thread->loop, c->fd, AE_WRITABLE, socket_writeable, c);
+        }
+        reconnect_socket(c->thread, c);
+ 
         c->thread->bytes += n;
     } while (n == RECVBUF && sock.readable(c) > 0);
 

@@ -27,15 +27,15 @@ function wrk.setup(thread)
 end
 
 function wrk.init(args)
-   if not wrk.headers["Host"] then
-      local host = wrk.host
-      local port = wrk.port
+--   if not wrk.headers["Host"] then
+--      local host = wrk.host
+--      local port = wrk.port
 
-      host = host:find(":") and ("[" .. host .. "]")  or host
-      host = port           and (host .. ":" .. port) or host
+--      host = host:find(":") and ("[" .. host .. "]")  or host
+--      host = port           and (host .. ":" .. port) or host
 
-      wrk.headers["Host"] = host
-   end
+--      wrk.headers["Host"] = host
+--   end
 
    if type(init) == "function" then
       init(args)
@@ -54,11 +54,11 @@ function wrk.format(method, path, headers, body)
    local body    = body    or wrk.body
    local s       = {}
 
-   if not headers["Host"] then
-      headers["Host"] = wrk.headers["Host"]
-   end
+--   if not headers["Host"] then
+--      headers["Host"] = wrk.headers["Host"]
+--   end
 
-   headers["Content-Length"] = body and string.len(body)
+--   headers["Content-Length"] = body and string.len(body)
 
    s[1] = string.format("%s %s HTTP/1.1", method, path)
    for name, value in pairs(headers) do
